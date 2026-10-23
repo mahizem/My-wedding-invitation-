@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wedding Admin</title><meta name="robots" content="noindex">
+<style>body{font-family:system-ui,sans-serif;background:#f3e6c4;color:#2b170a;margin:0;padding:16px;max-width:900px;margin:auto}h1,h2{font-family:Georgia,serif}
+.c{background:#fffaf0;border:1.5px solid #8a6322;padding:10px;margin:8px 0}button{padding:9px 14px;border:1px solid #2b170a;background:#2b170a;color:#e2c277;cursor:pointer;margin:2px}button.g{background:#2f5d2a;color:#fff}button.r{background:#8b1e1e;color:#fff}
+.ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}img{width:100%;height:170px;object-fit:cover}.s{font-size:12px;font-weight:700}input{padding:10px;font-size:16px}a{color:#8a6322}</style></head><body>
+<h1>Wedding Admin</h1><div id="login"><input id="pw" type="password" placeholder="Admin password"><button id="go">Log in</button> <span id="err"></span></div><div id="app" hidden>
+<h2>RSVP <small id="tot"></small></h2><button id="csv">Download RSVPs (CSV)</button><div id="rs"></div><h2>Wishes</h2><div id="ws"></div><h2>Photos</h2><div id="ps" class="ph"></div></div>
+<script>
+const $=s=>document.querySelector(s);let K=sessionStorage.k||"";const H=()=>({"x-admin-key":K});
+const mk=(t,p={},k=[])=>{const e=document.createElement(t);Object.assign(e,p);k.forEach(x=>e.append(x));return e};
+async function act(t,id,a){if(a==="delete"&&!confirm("Delete permanently?"))return;await fetch(`/api/admin/${t}/${id}/${a}`,{method:"POST",headers:H()});load()}
+const btns=(t,r)=>mk("div",{},[...(t==="rsvps"?[]:[mk("button",{className:"g",textContent:"Approve",onclick:()=>act(t,r.id,"approve")}),mk("button",{textContent:"Reject",onclick:()=>act(t,r.id,"reject")})]),mk("button",{className:"r",textContent:"Delete",onclick:()=>act(t,r.id,"delete")})]);
+async function load(){const r=await fetch("/api/admin/all",{headers:H()});if(!r.ok){$("#err").textContent="Wrong password / ADMIN_PASSWORD not set";return}sessionStorage.k=K;$("#login").hidden=true;$("#app").hidden=false;const d=await r.json();
+$("#tot").textContent=`— ${d.totals.yes||0} yes, ${d.totals.no||0} no, ${d.totals.coming||0} guests coming`;
+$("#rs").replaceChildren(...d.rsvps.map(x=>mk("div",{className:"c"},[mk("b",{textContent:x.name}),` · ${x.attending?"YES":"no"} · ${x.guests} guest(s) · ${x.message||""}`,btns("rsvps",x)])));
+$("#ws").replaceChildren(...d.wishes.map(x=>mk("div",{className:"c"},[mk("span",{className:"s",textContent:x.status.toUpperCase()+" "}),mk("b",{textContent:x.name}),mk("p",{textContent:x.message}),btns("wishes",x)])));
+$("#ps").replaceChildren(...await Promise.all(d.photos.map(async x=>{const b=await (await fetch("/uploads/"+x.file+"?admin=1",{headers:H()})).blob();return mk("div",{className:"c"},[mk("img",{src:URL.createObjectURL(b)}),mk("span",{className:"s",textContent:x.status.toUpperCase()+" · "+(x.guest_name||"anonymous")}),mk("div",{textContent:x.message||""}),btns("photos",x)])})))}
+$("#go").onclick=()=>{K=$("#pw").value;load()};$("#csv").onclick=async()=>{const b=await (await fetch("/api/admin/rsvps.csv",{headers:H()})).blob();mk("a",{href:URL.createObjectURL(b),download:"rsvps.csv"}).click()};if(K)load();
+</script></body></html>
