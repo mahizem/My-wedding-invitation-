@@ -27,12 +27,39 @@ const isAdmin = req => { if (!ADMIN_PASSWORD) return false; const a = Buffer.fro
 function body(req, max) { return new Promise((ok, no) => { let n = 0; const c = []; req.on('data', d => { n += d.length; if (n > max) { no(new Error('too large')); req.destroy(); } else c.push(d); }); req.on('end', () => ok(Buffer.concat(c).toString())); req.on('error', no); }); }
 const json = async (req, max = 20000) => { try { return JSON.parse(await body(req, max)); } catch { return null; } };
 
+// Supabase is accessed only from this server, using the private key stored in Render.
+const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || '';
+const hasSupabase = () => Boolean(SUPABASE_URL && SUPABASE_SECRET_KEY);
+async function supabaseRequest(table, method = 'GET', query = '', data = undefined) {
+  if (!hasSupabase()) throw new Error('Supabase environment variables are missing');
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query ? `?${query}` : ''}`, {
+    method,
+    headers: {
+      apikey: SUPABASE_SECRET_KEY,
+      Authorization: `Bearer ${SUPABASE_SECRET_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    ...(data === undefined ? {} : { body: JSON.stringify(data) })
+  });
+  const resultText = await response.text();
+  if (!response.ok) {
+    console.error(`Supabase request failed (${table}, ${response.status}): ${resultText.slice(0, 300)}`);
+    throw new Error(`Supabase request failed with status ${response.status}`);
+  }
+  return resultText ? JSON.parse(resultText) : null;
+}
+
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x'), p = url.pathname, ip = req.socket.remoteAddress;
   try {
     // ---------- PUBLIC API ----------
     if (p === '/api/photos' && req.method === 'GET') return send(res, 200, db.prepare("SELECT id,file,guest_name,message,created_at FROM photos WHERE status='approved' ORDER BY id DESC LIMIT 200").all().map(r => ({ ...r, url: '/uploads/' + r.file })));
-    if (p === '/api/wishes' && req.method === 'GET') return send(res, 200, db.prepare("SELECT id,name,message,created_at FROM wishes WHERE status='approved' ORDER BY id DESC LIMIT 200").all());
+    if (p === '/api/wishes' && req.method === 'GET') {
+      if (!hasSupabase()) return send(res, 503, { error: 'Wishes storage is not configured yet' });
+      return send(res, 200, await supabaseRequest('wishes', 'GET', 'select=id,name,message,created_at&status=eq.approved&order=id.desc&limit=200'));
+    }
     if (req.method === 'POST' && p.startsWith('/api/') && !p.startsWith('/api/admin') && limited(ip)) return send(res, 429, { error: 'Too many requests. Please try again later.' });
 
     if (p === '/api/photos' && req.method === 'POST') {       // body: {image:"data:image/jpeg;base64,...", name, message}
@@ -46,31 +73,57 @@ http.createServer(async (req, res) => {
       return send(res, 201, { ok: true });
     }
     if (p === '/api/wishes' && req.method === 'POST') {
+      if (!hasSupabase()) return send(res, 503, { error: 'Wishes storage is not configured yet' });
       const d = await json(req); const name = clean(d?.name, 60), msg = clean(d?.message, 500);
       if (!name || !msg) return send(res, 400, { error: 'Name and message are required' });
-      db.prepare('INSERT INTO wishes(name,message) VALUES(?,?)').run(name, msg); return send(res, 201, { ok: true });
+      await supabaseRequest('wishes', 'POST', '', { name, message: msg, status: 'pending' });
+      return send(res, 201, { ok: true });
     }
     if (p === '/api/rsvp' && req.method === 'POST') {
+      if (!hasSupabase()) return send(res, 503, { error: 'RSVP storage is not configured yet' });
       const d = await json(req); const name = clean(d?.name, 60), g = Math.floor(Number(d?.guests));
       if (!name || !(g >= 1 && g <= 20) || typeof d?.attending !== 'boolean') return send(res, 400, { error: 'Please complete the form' });
-      db.prepare('INSERT INTO rsvps(name,guests,attending,message) VALUES(?,?,?,?)').run(name, g, d.attending ? 1 : 0, clean(d.message, 300)); return send(res, 201, { ok: true });
+      await supabaseRequest('rsvps', 'POST', '', { name, guests: g, attending: d.attending ? 1 : 0, message: clean(d.message, 300) });
+      return send(res, 201, { ok: true });
     }
 
     // ---------- ADMIN API (header x-admin-key) ----------
     if (p.startsWith('/api/admin') || (p.startsWith('/uploads/') && url.searchParams.get('admin'))) {
       if (!isAdmin(req)) return send(res, 401, { error: ADMIN_PASSWORD ? 'Wrong password' : 'Set ADMIN_PASSWORD to enable admin' });
     }
-    if (p === '/api/admin/all') return send(res, 200, {
-      photos: db.prepare('SELECT * FROM photos ORDER BY id DESC').all(), wishes: db.prepare('SELECT * FROM wishes ORDER BY id DESC').all(), rsvps: db.prepare('SELECT * FROM rsvps ORDER BY id DESC').all(),
-      totals: db.prepare('SELECT COALESCE(SUM(CASE WHEN attending=1 THEN guests END),0) AS coming, SUM(attending=1) AS yes, SUM(attending=0) AS no FROM rsvps').get() });
-    if (p === '/api/admin/rsvps.csv') { const q = s => '"' + String(s ?? '').replace(/"/g, '""') + '"'; const rows = db.prepare('SELECT * FROM rsvps ORDER BY id').all();
+    if (p === '/api/admin/all') {
+      if (!hasSupabase()) return send(res, 503, { error: 'Supabase storage is not configured yet' });
+      const [wishes, rsvps] = await Promise.all([
+        supabaseRequest('wishes', 'GET', 'select=*&order=id.desc'),
+        supabaseRequest('rsvps', 'GET', 'select=*&order=id.desc')
+      ]);
+      const totals = {
+        coming: rsvps.reduce((sum, r) => sum + (Number(r.attending) === 1 ? Number(r.guests) : 0), 0),
+        yes: rsvps.filter(r => Number(r.attending) === 1).length,
+        no: rsvps.filter(r => Number(r.attending) === 0).length
+      };
+      return send(res, 200, { photos: db.prepare('SELECT * FROM photos ORDER BY id DESC').all(), wishes, rsvps, totals });
+    }
+    if (p === '/api/admin/rsvps.csv') {
+      if (!hasSupabase()) return send(res, 503, { error: 'Supabase storage is not configured yet' });
+      const q = s => '"' + String(s ?? '').replace(/"/g, '""') + '"';
+      const rows = await supabaseRequest('rsvps', 'GET', 'select=*&order=id.asc');
       res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename=rsvps.csv' });
-      return res.end('\ufeffname,guests,attending,message,created_at\n' + rows.map(r => [q(r.name), r.guests, r.attending ? 'yes' : 'no', q(r.message), q(r.created_at)].join(',')).join('\n')); }
+      return res.end('\ufeffname,guests,attending,message,created_at\n' + rows.map(r => [q(r.name), r.guests, Number(r.attending) ? 'yes' : 'no', q(r.message), q(r.created_at)].join(',')).join('\n'));
+    }
     let m = /^\/api\/admin\/(photos|wishes|rsvps)\/(\d+)\/(approve|reject|delete)$/.exec(p);
     if (m && req.method === 'POST') {
       const [, t, id, act] = m;
-      if (act === 'delete') { if (t === 'photos') { const r = db.prepare('SELECT file FROM photos WHERE id=?').get(id); if (r) fs.rmSync(path.join(UPLOADS, r.file), { force: true }); } db.prepare(`DELETE FROM ${t} WHERE id=?`).run(id); }
-      else if (t !== 'rsvps') db.prepare(`UPDATE ${t} SET status=? WHERE id=?`).run(act === 'approve' ? 'approved' : 'rejected', id);
+      if ((t === 'wishes' || t === 'rsvps') && !hasSupabase()) return send(res, 503, { error: 'Supabase storage is not configured yet' });
+      if (t === 'photos') {
+        if (act === 'delete') { const r = db.prepare('SELECT file FROM photos WHERE id=?').get(id); if (r) fs.rmSync(path.join(UPLOADS, r.file), { force: true }); db.prepare('DELETE FROM photos WHERE id=?').run(id); }
+        else db.prepare('UPDATE photos SET status=? WHERE id=?').run(act === 'approve' ? 'approved' : 'rejected', id);
+      } else if (act === 'delete') {
+        await supabaseRequest(t, 'DELETE', `id=eq.${id}`);
+      } else if (t === 'approve' || act === 'reject') {
+        if (t === 'rsvps') return send(res, 400, { error: 'RSVPs cannot be approved or rejected' });
+        await supabaseRequest(t, 'PATCH', `id=eq.${id}`, { status: act === 'approve' ? 'approved' : 'rejected' });
+      }
       return send(res, 200, { ok: true });
     }
 
