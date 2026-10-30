@@ -543,37 +543,6 @@ $("#wishForm").onsubmit = async (e) => {
   }
 };
 
-// ---------- RSVP ----------
-$("#rg").replaceChildren(
-  ...Array.from({ length: 10 }, (_, i) =>
-    el("option", { value: i + 1, textContent: i + 1 })
-  )
-);
-$("#rsvpForm").onsubmit = async (e) => {
-  e.preventDefault();
-  const a = document.querySelector("input[name=att]:checked");
-  try {
-    await post("/api/rsvp", {
-      name: $("#rn").value,
-      guests: +$("#rg").value,
-      attending: a?.value === "yes",
-      message: $("#rm").value,
-    });
-    e.target.reset();
-    say(
-      "#rmsg",
-      a.value === "yes"
-        ? "Thank you! We can't wait to celebrate with you."
-        : "Thank you for letting us know. You will be missed.",
-      true
-    );
-  } catch (er) {
-    say("#rmsg", er.message);
-  }
-};
-observe();
-loadGallery();
-loadWishes();
 
 // ---------- gold particles (stops after the gate opens) ----------
 (() => {
