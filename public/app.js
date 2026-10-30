@@ -1,5 +1,7 @@
 import { weddingConfig as C, photoUploadUrl } from "/weddingConfig.js";
 import { weddingProgram } from "/weddingProgram.js";
+const API_BASE = "https://my-wedding-invitation-pw7j.onrender.com"; 
+const apiUrl = (path) => ${API_BASE}${path};
 const $ = (s) => document.querySelector(s),
   el = (t, p = {}, kids = []) => {
     const e = document.createElement(t);
@@ -389,7 +391,7 @@ const compress = (file) =>
     img.src = URL.createObjectURL(file);
   });
 const post = async (u, data) => {
-  const r = await fetch(u, {
+  const r = await fetch(apiUrl(u), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -478,7 +480,11 @@ const lb = $("#lb"),
   };
 async function loadGallery() {
   try {
-    pics = await (await fetch("/api/photos")).json();
+   pics = await (await fetch(apiUrl("/api/photos"))).json();
+pics = pics.map(p => ({
+  ...p,
+  url: p.url.startsWith("http") ? p.url : apiUrl(p.url)
+}));
   } catch {
     pics = [];
   }
@@ -512,7 +518,7 @@ addEventListener("keydown", (e) => {
 async function loadWishes() {
   let w = [];
   try {
-    w = await (await fetch("/api/wishes")).json();
+    w = await (await fetch(apiUrl("/api/wishes"))).json();
   } catch {}
   $("#wishList").replaceChildren(
     ...w.map((x) =>
