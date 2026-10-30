@@ -109,14 +109,17 @@ tick();
 setInterval(tick, 1000);
 
 // ---------- story / program ----------
+
+// ---------- story / program ----------
 $("#storyBox").replaceChildren(
   ...C.story.map((s) =>
     el("div", { className: "card reveal" }, [
       el("h3", { textContent: s.title }),
-      el("p", { textContent: s.text }),
+      el("p", { textContent: s.text || "" }),
     ])
   )
 );
+
 $("#tl").replaceChildren(
   ...weddingProgram.map((e) =>
     el("div", { className: "ev reveal" }, [
@@ -126,6 +129,10 @@ $("#tl").replaceChildren(
     ])
   )
 );
+
+// IMPORTANT: observe the newly created story and program entries
+observe();
+
 
 // ---------- location ----------     https://maps.app.goo.gl/mojBvuwjLwSWHECGA?g_st=ic
 const dirUrl =
