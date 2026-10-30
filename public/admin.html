@@ -6,7 +6,7 @@
 <h2>RSVP <small id="tot"></small></h2><button id="csv">Download RSVPs (CSV)</button><div id="rs"></div><h2>Wishes</h2><div id="ws"></div><h2>Photos</h2><div id="ps" class="ph"></div></div>
 <script>
 const API_BASE = "https://my-wedding-invitation-pw7j.onrender.com";
-const apiUrl = (path) => ${API_BASE}${path};
+const apiUrl = (path) => `${API_BASE}${path}`;
 
 const $ = s => document.querySelector(s);
 let K = sessionStorage.k || "";
