@@ -10,7 +10,7 @@ export const weddingProgram = [
     description: "ሙሽራው ከአጃቢዎቹ ጋር የሚመጣበት ሰዓት ነው።",
   },
   {
-    time: "7:00 - 7:30"፟ ,
+    time: "7:00 - 7:30" ,
     icon: "🤵👰",
     title: "የሙሽራው አና የሙሽሪት የጋራ የፎቶ ሰዐትና",
     description: "ሙሽራው ከሙሽሪት ጋር ያለው የፎቶ ሰዐት ነው።",
