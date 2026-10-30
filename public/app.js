@@ -1,987 +1,613 @@
-<!DOCTYPE html>
-<html lang="am">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-    <title>Abe and Mahi Wedding Invitation · የአቤና የማሂ የጋብቻ ጥሪ</title>
-    <meta name="theme-color" content="#7a5520" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✝️</text></svg>"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Serif+Ethiopic:wght@400;700&family=Cormorant+Garamond:wght@500;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --gold: #b8893a;
-        --gold-d: #8a6322;
-        --gold-l: #e2c277;
-        --brown: #4a2a14;
-        --choc: #2b170a;
-        --ivory: #fff8e6;
-        --cream: #f7ecd4;
-        --serif: "Cormorant Garamond", "Noto Serif Ethiopic", Georgia, serif;
-        --am: "Noto Serif Ethiopic", serif;
-        --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      html {
-        scroll-behavior: smooth;
-        scroll-padding-top: 64px;
-      }
-      body {
-        margin: 0;
-        font-family: var(--sans);
-        color: var(--choc);
-        line-height: 1.6;
-        overflow-x: hidden;
-        background: linear-gradient(
-            180deg,
-            #d9b565 0,
-            #c9a14f 30%,
-            #d6b062 60%,
-            #bf9544 100%
-          )
-          fixed;
-        background-image: url("twaf_ruk.jpg");
-        background-size: 75% auto;
-      }
+import { weddingConfig as C, photoUploadUrl } from "/weddingConfig.js";
+import { weddingProgram } from "/weddingProgram.js";
+const API_BASE = "https://my-wedding-invitation-pw7j.onrender.com"; 
+const apiUrl = (path) => `${API_BASE}${path}`;
+const $ = (s) => document.querySelector(s),
+  el = (t, p = {}, kids = []) => {
+    const e = document.createElement(t);
+    Object.assign(e, p);
+    kids.forEach((k) => e.append(k));
+    return e;
+  };
+const when = new Date(`${C.date}T${C.time}:00${C.timezoneOffset}`); // the ONE event moment used everywhere
+const mapQuery = [C.venue.name, C.venue.address].filter(Boolean).join(", ");
+const hasCoords = C.venue.latitude && C.venue.longitude;
 
-      body.lock {
-        overflow: hidden;
-      }
-      img {
-        max-width: 100%;
-      }
-      /* ---- opening gate ---- */
-      #gate {
-        position: fixed;
-        inset: 0;
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 24px;
-        background: radial-gradient(
-          ellipse at 50% 35%,
-          #e8cd8a,
-          #b88a3c 55%,
-          #6b4718
-        );
-        color: var(--choc);
-        transition: opacity 1s, visibility 1s;
-      }
-      #gate.gone {
-        opacity: 0;
-        visibility: hidden;
-      }
-      #gate .couple {
-        width: min(52vw, 220px);
-        border-radius: 50% 50% 8px 8px/38% 38% 8px 8px;
-        border: 3px solid var(--ivory);
-        outline: 1px solid var(--gold-d);
-        outline-offset: 4px;
-        box-shadow: 0 12px 40px #0006;
-      }
-      #gate h1 {
-        font-family: var(--am);
-        font-size: clamp(22px, 6vw, 34px);
-        margin: 14px 0 2px;
-        color: var(--choc);
-      }
-      #gate p {
-        margin: 4px 0;
-        font-family: var(--serif);
-        font-size: clamp(17px, 4.4vw, 22px);
-        color: var(--brown);
-      }
-      .btn {
-        font-family: var(--sans);
-        font-size: 16px;
-        font-weight: 600;
-        padding: 14px 28px;
-        min-height: 48px;
-        border-radius: 2px;
-        border: 1.5px solid var(--gold-d);
-        background: var(--choc);
-        color: var(--gold-l);
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: transform 0.2s, box-shadow 0.2s;
-      }
-      .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px #0004;
-      }
-      .btn.alt {
-        background: var(--ivory);
-        color: var(--brown);
-      }
-      #particles {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 101;
-      }
-      svg.cross {
-        display: block;
-        margin: 0 auto;
-        animation: float 6s ease-in-out infinite;
-        color: var(--cream);
-      }
-      @keyframes float {
-        50% {
-          transform: translateY(-6px);
-        }
-      }
-      /* ---- nav ---- */
-      nav {
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        background: rgba(43, 23, 10, 0.88);
-        backdrop-filter: blur(8px);
-        padding-top: env(safe-area-inset-top, 0);
-      }
-      nav .in {
-        max-width: 1000px;
-        margin: auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 6px 14px;
-        min-height: 50px;
-      }
-      nav b {
-        color: var(--gold-l);
-        font-family: var(--serif);
-        font-size: 20px;
-      }
-      nav ul {
-        display: flex;
-        gap: 4px;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-      nav a {
-        color: var(--ivory);
-        text-decoration: none;
-        font-size: 14px;
-        padding: 10px 10px;
-        display: block;
-        border-radius: 2px;
-      }
-      nav a:hover {
-        background: #ffffff1f;
-      }
-      #burger {
-        display: none;
-        background: none;
-        border: 1px solid var(--gold);
-        color: var(--gold-l);
-        font-size: 22px;
-        width: 46px;
-        height: 42px;
-        border-radius: 2px;
-      }
-      @media (max-width: 760px) {
-        #burger {
-          display: block;
-        }
-        nav ul {
-          display: none;
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          flex-direction: column;
-          background: rgba(43, 23, 10, 0.97);
-          padding: 8px 14px 14px;
-        }
-        nav ul.open {
-          display: flex;
-        }
-        nav a {
-          padding: 14px 8px;
-          font-size: 17px;
-        }
-      }
-      /* ---- sections ---- */
-      section {
-        padding: 56px 16px;
-        max-width: 900px;
-        margin: auto;
-        text-align: center;
-      }
-      section h2 {
-        font-family: var(--serif);
-        font-size: clamp(28px, 7vw, 40px);
-        color: var(--cream);
-        margin: 0 0 6px;
-      }
-      .sub {
-        color: var(--cream);
-        margin: 0 0 26px;
-        font-size: 15px;
-      }
-      .orn {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        justify-content: center;
-        margin: 0 0 22px;
-        color: var(--cream);
-      }
-      .orn i {
-        height: 1px;
-        width: 56px;
-        background: var(--cream);
-      }
-      .card {
-        background: linear-gradient(180deg, #fffaf0, #f7ecd4);
-        border: 2px solid var(--gold-d);
-        outline: 1px solid var(--gold);
-        outline-offset: -7px;
-        padding: 28px 20px;
-        box-shadow: 0 10px 30px #4a2a1440;
-        text-align: center;
-      }
-      .tilet {
-        height: 14px;
-        margin: 0 auto;
-        max-width: 900px;
-        opacity: 0.75;
-        background: repeating-linear-gradient(
-            135deg,
-            transparent 0 5px,
-            var(--brown) 5px 6px
-          ),
-          repeating-linear-gradient(
-            45deg,
-            transparent 0 5px,
-            var(--cream) 5px 6px
-          );
-      }
-      .reveal {
-        opacity: 0;
-        transform: translateY(18px);
-        transition: opacity 0.9s, transform 0.9s;
-      }
-      .reveal.in {
-        opacity: 1;
-        transform: none;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .reveal {
-          opacity: 1;
-          transform: none;
-          transition: none;
-        }
-        svg.cross {
-          animation: none;
-        }
-        html {
-          scroll-behavior: auto;
-        }
-      }
-      /* invitation text */
-      .am {
-        font-family: var(--am);
-      }
-      .greet {
-        font-size: 16px;
-        color: var(--brown);
-      }
-      .son {
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--gold-d);
-        margin: 12px 0 4px;
-      }
-      .name {
-        font-size: clamp(22px, 6vw, 30px);
-        font-weight: 700;
-        line-height: 1.4;
-      }
-      .and {
-        color: var(--gold-d);
-        font-size: 18px;
-      }
-      .body {
-        font-size: 16px;
-        line-height: 2;
-        color: var(--brown);
-        margin: 18px 0;
-      }
-      .par {
-        font-weight: 700;
-        line-height: 1.9;
-        margin: 16px 0;
-      }
-      /* countdown */
-      .count {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-        max-width: 480px;
-        margin: auto;
-      }
-      .count div {
-        background: var(--ivory);
-        border: 1.5px solid var(--gold-d);
-        padding: 12px 2px;
-      }
-      .count strong {
-        display: block;
-        font-family: var(--serif);
-        font-size: clamp(28px, 8vw, 42px);
-        color: var(--gold-d);
-        line-height: 1.1;
-      }
-      .count span {
-        font-size: 11px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--brown);
-      }
-      .today {
-        font-family: var(--serif);
-        font-size: 28px;
-        color: var(--choc);
-      }
-      /* story + timeline */
-      .story {
-        display: grid;
-        gap: 14px;
-      }
-      .story h3,
-      .ev h3 {
-        font-family: var(--serif);
-        color: var(--gold-d);
-        margin: 0 0 6px;
-        font-size: 23px;
-      }
-      .tl {
-        position: relative;
-        text-align: left;
-        max-width: 640px;
-        margin: auto;
-        padding-left: 22px;
-        border-left: 2px solid var(--gold-d);
-      }
-      .ev {
-        position: relative;
-        margin: 0 0 18px;
-        padding: 14px 16px;
-        background: var(--ivory);
-        border: 1.5px solid var(--gold-d);
-      }
-      .ev::before {
-        content: "";
-        position: absolute;
-        left: -31px;
-        top: 20px;
-        width: 14px;
-        height: 14px;
-        transform: rotate(45deg);
-        background: var(--gold);
-        border: 2px solid var(--choc);
-      }
-      .ev small {
-        font-family: var(--sans);
-        color: var(--gold-d);
-        font-weight: 700;
-        letter-spacing: 0.06em;
-      }
-      .ev h3 {
-        margin: 2px 0 2px;
-      }
-      .ev p {
-        margin: 0;
-        font-size: 15px;
-        color: var(--brown);
-      }
-      /* calendar */
-      .cal {
-        max-width: 340px;
-        margin: 0 auto 22px;
-        background: var(--ivory);
-        border: 2px solid var(--gold-d);
-        padding: 14px;
-      }
-      .cal h4 {
-        margin: 0 0 8px;
-        font-family: var(--serif);
-        font-size: 22px;
-        color: var(--brown);
-      }
-      .cal .g {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 4px;
-        font-size: 14px;
-      }
-      .cal .g b {
-        font-size: 11px;
-        color: var(--gold-d);
-      }
-      .cal .g span {
-        aspect-ratio: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .cal .g span.hit {
-        background: radial-gradient(circle, var(--gold) 0 62%, transparent 64%);
-        color: #fff;
-        font-weight: 700;
-        border-radius: 50%;
-        outline: 2px solid var(--choc);
-        outline-offset: -3px;
-      }
-      .row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: center;
-      }
-      iframe.map {
-        width: 100%;
-        height: 300px;
-        border: 2px solid var(--gold-d);
-        margin-bottom: 16px;
-      }
-      /* forms */
-      form {
-        display: grid;
-        gap: 12px;
-        text-align: left;
-      }
-      label {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--brown);
-      }
-      input,
-      textarea,
-      select {
-        width: 100%;
-        font: inherit;
-        font-size: 16px;
-        padding: 12px;
-        border: 1.5px solid var(--gold-d);
-        background: #fffdf6;
-        color: var(--choc);
-        border-radius: 2px;
-      }
-      textarea {
-        min-height: 90px;
-        resize: vertical;
-      }
-      .choice {
-        display: flex;
-        gap: 10px;
-      }
-      .choice label {
-        flex: 1;
-        border: 1.5px solid var(--gold-d);
-        padding: 12px;
-        text-align: center;
-        cursor: pointer;
-        background: #fffdf6;
-      }
-      .choice label {
-        position: relative;
-      }
-      .choice input {
-        position: absolute;
-        opacity: 0;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        cursor: pointer;
-      }
-      .choice input:checked + span {
-        font-weight: 700;
-      }
-      .choice label:has(input:checked) {
-        background: var(--gold);
-        color: #fff;
-      }
-      .msg {
-        min-height: 24px;
-        font-weight: 600;
-        text-align: center;
-      }
-      .msg.ok {
-        color: #2f5d2a;
-      }
-      .msg.err {
-        color: #8b1e1e;
-      }
-      .drop {
-        border: 2px dashed var(--gold-d);
-        padding: 22px;
-        background: #fffdf6;
-        cursor: pointer;
-        text-align: center;
-        display: block;
-        font-size: 16px;
-      }
-      .thumbs {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-        gap: 8px;
-      }
-      .thumbs div {
-        position: relative;
-        aspect-ratio: 1;
-      }
-      .thumbs img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border: 1.5px solid var(--gold-d);
-      }
-      .thumbs button {
-        position: absolute;
-        top: 2px;
-        right: 2px;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: 0;
-        background: var(--choc);
-        color: #fff;
-        font-size: 16px;
-      }
-      .bar {
-        height: 8px;
-        background: #0002;
-        display: none;
-      }
-      .bar i {
-        display: block;
-        height: 100%;
-        width: 0;
-        background: var(--gold-d);
-        transition: width 0.3s;
-      }
-      #qr {
-        display: inline-block;
-        padding: 14px;
-        background: #fff;
-        border: 3px solid var(--gold-d);
-        outline: 1px solid var(--gold);
-        outline-offset: 4px;
-        margin: 6px 0 16px;
-      }
-      #qr canvas,
-      #qr img {
-        display: block;
-        max-width: 100%;
-      }
-      /* gallery + wishes */
-      .gal {
-        columns: 2 150px;
-        column-gap: 10px;
-      }
-      .gal img {
-        width: 100%;
-        margin: 0 0 10px;
-        display: block;
-        border: 2px solid var(--ivory);
-        cursor: zoom-in;
-        break-inside: avoid;
-        box-shadow: 0 4px 12px #0003;
-      }
-      @media (min-width: 700px) {
-        .gal {
-          columns: 3;
-        }
-      }
-      #lb {
-        position: fixed;
-        inset: 0;
-        background: #000d;
-        z-index: 200;
-        display: none;
-        align-items: center;
-        justify-content: center;
-      }
-      #lb.on {
-        display: flex;
-      }
-      #lb img {
-        max-width: 92vw;
-        max-height: 84vh;
-        border: 3px solid var(--ivory);
-      }
-      #lb button {
-        position: absolute;
-        background: #0008;
-        color: #fff;
-        border: 1px solid var(--gold);
-        font-size: 26px;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-      }
-      .wishes {
-        display: grid;
-        gap: 14px;
-        text-align: left;
-      }
-      .wish {
-        padding: 18px 18px 14px;
-        background: linear-gradient(180deg, #fffaf0, #f7ecd4);
-        border: 2px solid var(--gold-d);
-        outline: 1px solid var(--gold);
-        outline-offset: -6px;
-        animation: in 0.8s both;
-      }
-      .wish p {
-        margin: 0 0 8px;
-        font-family: var(--serif);
-        font-size: 20px;
-        color: var(--brown);
-      }
-      .wish b {
-        color: var(--gold-d);
-        font-size: 14px;
-      }
-      @keyframes in {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-      }
-      #music {
-        position: fixed;
-        right: 14px;
-        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-        z-index: 60;
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        border: 2px solid var(--gold);
-        background: var(--choc);
-        color: var(--gold-l);
-        font-size: 22px;
-        box-shadow: 0 4px 14px #0006;
-        display: none;
-      }
-      #music.on {
-        display: block;
-      }
-      #musicNote {
-        position: fixed;
-        right: 76px;
-        bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-        z-index: 60;
-        background: var(--ivory);
-        padding: 8px 12px;
-        font-size: 13px;
-        border: 1px solid var(--gold-d);
-        display: none;
-        max-width: 60vw;
-      }
-      footer {
-        padding: 30px 16px 60px;
-        text-align: center;
-        color: var(--choc);
-      }
-    </style>
-  </head>
-  <body class="lock">
-    <canvas id="particles"></canvas>
-    <!-- OPENING GATE -->
-    <div id="gate">
-      <svg
-        class="cross"
-        id="crossG"
-        width="64"
-        height="64"
-        viewBox="-40 -40 80 80"
-        fill="none"
-        stroke="#2b170a"
-        stroke-width="2.4"
-        stroke-linecap="round"
-      >
-        <path d="M0-26V26M-26 0H26" />
-        <rect x="-10" y="-10" width="20" height="20" transform="rotate(45)" />
-        <circle cy="-26" r="3.5" />
-        <circle cy="26" r="3.5" />
-        <circle cx="-26" r="3.5" />
-        <circle cx="26" r="3.5" />
-        <circle r="34" stroke-width="1" stroke-dasharray="2 4" />
-      </svg>
-      <p style="margin-top: 8px">
-        You are warmly invited to celebrate our wedding
-      </p>
-      <img
-        class="couple"
-        src="couple.jpg"
-        alt="The bride and groom"
-        style="margin: 12px 0"
-      />
-      <h1 id="gGroom"></h1>
-      <p>&amp;</p>
-      <h1 id="gBride" style="margin-top: 0"></h1>
-      <button class="btn" id="openBtn" style="margin-top: 20px">
-        Open Invitation
-      </button>
-    </div>
+// ---------- names ----------
+$("#gGroom").textContent = C.groom;
+$("#gBride").textContent = C.bride;
+$("#tGroom").textContent = C.groom;
+$("#tBride").textContent = C.bride;
+$("#navNames").textContent = `${C.groomShort} & ${C.brideShort}`;
+$("#fNames").textContent = `${C.groom} · ${C.bride}`;
+$("#dateLbl").textContent = `${C.dateLabelEnglish}`;
 
-    <nav>
-      <div class="in">
-        <b>✝ <span id="navNames"></span></b
-        ><button id="burger" aria-label="Menu">☰</button>
-        <ul id="menu">
-          <li><a href="#home">Home</a></li>
-          <li><a href="#story">Our Story</a></li>
-          <li><a href="#program">Wedding Program</a></li>
-          <li><a href="#location">Location</a></li>
-          <li><a href="#photos">Photos</a></li>
-          <li><a href="#wishes">Wishes</a></li>
-        </ul>
-      </div>
-    </nav>
-    <button id="music" aria-label="Play or pause music">🔊</button>
-    <div id="musicNote"></div>
-    <audio id="audio" loop preload="none"></audio>
+// ---------- music (one <audio>, never restarted) ----------
+const audio = $("#audio"),
+  mb = $("#music"),
+  note = $("#musicNote");
+audio.src = C.music; // replace file in /public/music + weddingConfig.js
+const setIcon = () => (mb.textContent = audio.paused ? "🔇" : "🔊");
+async function playMusic() {
+  try {
+    await audio.play();
+    note.style.display = "none";
+  } catch (e) {
+    if (e.name === "NotSupportedError") {
+      mb.classList.remove("on");
+      note.style.display = "none";
+      return;
+    }
+    /* no/unsupported music file: hide control */ note.textContent =
+      "🔊 Tap the button to play music";
+    note.style.display = "block";
+  }
+  setIcon();
+}
+mb.onclick = () => {
+  audio.paused ? playMusic() : audio.pause();
+  setIcon();
+};
+audio.onerror = () => {
+  mb.classList.remove("on");
+  note.style.display = "none";
+}; // no music file yet: hide control quietly
+$("#openBtn").onclick = () => {
+  $("#gate").classList.add("gone");
+  document.body.classList.remove("lock");
+  mb.classList.add("on");
+  playMusic();
+  $("#particles").style.display = "none";
+};
 
-    <main>
-      <section id="home">
-        <div class="card reveal am">
-          <svg
-            class="cross"
-            width="70"
-            height="70"
-            viewBox="-40 -40 80 80"
-            fill="none"
-            stroke="#8a6322"
-            stroke-width="2.4"
-            stroke-linecap="round"
-          >
-            <path d="M0-26V26M-26 0H26" />
-            <rect
-              x="-10"
-              y="-10"
-              width="20"
-              height="20"
-              transform="rotate(45)"
-            />
-            <circle cy="-26" r="3.5" />
-            <circle cy="26" r="3.5" />
-            <circle cx="-26" r="3.5" />
-            <circle cx="26" r="3.5" />
-            <circle r="34" stroke-width="1" stroke-dasharray="2 4" />
-          </svg>
-          <!-- INVITATION TEXT (exact Amharic) -->
-          <p class="greet">የማክበር ሰላምታቸንን እያቀረብን</p>
-          <div class="son">የአቤና ማሂ ሰርግ ጥሪ</div>
-          <div class="name" id="tGroom">የ ካፒቴን አበበ አለማየሁ</div>
-          <div class="and">እና</div>
-          <div class="name" id="tBride">የ ማሕሌት አዱኛ</div>
-          <p class="body">
-            የጋብቻ ስነ-ስርዓት የሚፈፀመው እሁድ ኅዳር 6 /2019 ዓ.ም ስለሆነ በዚሁ እለት ከቀኑ 7:00 ሰዐት
-            በመኖርያ ቤታችን በምናደርገው የምሳ ግብዣ ላይ ተገኝተው የደስታችን ተካፋይ ይሆኑ ዘንድ በአክብሮት
-            ጠርተንዎታል።
-          </p>
-          <div class="par">
-            አድራሻ :- ሰሚት አትሌቶች መንደር<br />ስልክ.ቁ :- 0946276471 / 0922337855
-          </div>
-        </div>
-      </section>
-      <div class="tilet"></div>
+// ---------- nav ----------
+$("#burger").onclick = () => $("#menu").classList.toggle("open");
+$("#menu").onclick = (e) => {
+  if (e.target.tagName === "A") $("#menu").classList.remove("open");
+};
+const revealObs = new IntersectionObserver(
+  (es, o) =>
+    es.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add("in");
+        o.unobserve(e.target);
+      }
+    }),
+  { threshold: 0.1 }
+);
+const observe = () =>
+  document
+    .querySelectorAll(".reveal:not(.in)")
+    .forEach((n) => revealObs.observe(n));
+observe();
 
-      <section id="countdown">
-        <h2>Counting Down to Our Special Day</h2>
-        <div class="orn"><i></i>✦<i></i></div>
-        <div id="cd" class="count reveal"></div>
-      </section>
+// ---------- countdown ----------
+const cd = $("#cd");
+function tick() {
+  const x = when - Date.now();
+  if (x <= 0) {
+    cd.className = "today reveal in";
+    cd.textContent = "Today is the day! Welcome to our celebration.";
+    return;
+  }
+  const v = [
+    ["Days", x / 864e5],
+    ["Hours", (x % 864e5) / 36e5],
+    ["Minutes", (x % 36e5) / 6e4],
+    ["Seconds", (x % 6e4) / 1e3],
+  ];
+  cd.replaceChildren(
+    ...v.map(([l, n]) =>
+      el("div", {}, [
+        el("strong", { textContent: String(Math.floor(n)).padStart(2, "0") }),
+        el("span", { textContent: l }),
+      ])
+    )
+  );
+}
+tick();
+setInterval(tick, 1000);
 
-      <section id="story">
-        <h2>Our Story</h2>
-        <div class="orn"><i></i>✦<i></i></div>
-        <div class="story" id="storyBox"></div>
-      </section>
-      <div class="tilet"></div>
+// ---------- story / program ----------
+$("#storyBox").replaceChildren(
+  ...C.story.map((s) =>
+    el("div", { className: "card reveal" }, [
+      el("h3", { textContent: s.title }),
+      el("p", { textContent: s.text }),
+    ])
+  )
+);
+$("#tl").replaceChildren(
+  ...weddingProgram.map((e) =>
+    el("div", { className: "ev reveal" }, [
+      el("small", { textContent: e.time }),
+      el("h3", { textContent: `${e.icon} ${e.title}` }),
+      el("p", { textContent: e.description }),
+    ])
+  )
+);
 
-      <section id="program">
-        <h2>Our Wedding Day</h2>
-        <p class="sub">The wedding program</p>
-        <div class="tl" id="tl"></div>
-      </section>
+// ---------- location ----------     https://maps.app.goo.gl/mojBvuwjLwSWHECGA?g_st=ic
+const dirUrl =
+  C.venue.googleMapsUrl ||
+  (hasCoords
+    ? `https://www.google.com/maps/dir/?api=1&destination=${C.venue.latitude},${C.venue.longitude}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        mapQuery
+      )}`);
+const loc = $("#locBox");
+if (C.venue.name)
+  loc.append(
+    el("h3", {
+      textContent: C.venue.name,
+      style: "font-family:var(--serif);font-size:26px;margin:0 0 6px",
+    })
+  );
+loc.append(
+  el("p", {
+    className: "am",
+    textContent: `📍 ${C.venue.address}`,
+    style: "font-weight:700;font-size:18px",
+  })
+);
+if (hasCoords)
+  loc.append(
+    el("iframe", {
+      className: "map",
+      loading: "lazy",
+      title: "Map",
+      src: `https://www.google.com/maps?q=${C.venue.latitude},${C.venue.longitude}&z=16&output=embed`,
+    })
+  );
+loc.append(
+  el("div", { className: "row" }, [
+    el("a", {
+      className: "btn",
+      href: dirUrl,
+      target: "_blank",
+      rel: "noopener",
+      textContent: "🧭 Get Directions",
+    }),
+    el("a", {
+      className: "btn alt",
+      href: `tel:${C.phoneLink}`,
+      textContent: `📞 ${C.phone}`,
+    }),
+  ])
+);
+if (!hasCoords)
+  console.info(
+    "Add latitude/longitude in weddingConfig.js to show an exact map pin."
+  );
 
-      <section id="location">
-        <h2>Wedding Location</h2>
-        <div class="orn"><i></i>📍<i></i></div>
-        <div class="card reveal" id="locBox"></div>
-      </section>
-      <div class="tilet"></div>
+// ---------- save the date ----------
 
-      <section id="date">
-        <h2>Save the Date</h2>
-        <p class="sub" id="dateLbl"></p>
+(() => {
+  const [Y, M, D] = C.date.split("-").map(Number);
 
-        <div class="calendar-pair reveal">
-          <div class="cal calendar-card">
-            <h3>Gregorian Calendar</h3>
-            <div id="cal"></div>
-          </div>
+  // Parse the configured wedding date as a local calendar date.
+  const weddingDate = new Date(Y, M - 1, D);
 
-          <div class="cal calendar-card">
-            <h3>የኢትዮጵያ የቀን መቁጠሪያ</h3>
-            <div id="ethiopian-cal"></div>
-          </div>
-        </div>
+  // ---------- Gregorian calendar ----------
+  const gregorianContainer = document.querySelector("#cal");
+  gregorianContainer.replaceChildren();
 
-        <div class="row">
-          <a class="btn" id="gcal" target="_blank" rel="noopener">
-            📅 Add to Google Calendar
-          </a>
-          <button class="btn alt" id="ics">
-            📥 Add to Apple / Outlook Calendar
-          </button>
-        </div>
-      </section>
+  const gregorianHeading = document.createElement("h4");
+  gregorianHeading.textContent = weddingDate.toLocaleDateString("en", {
+    month: "long",
+    year: "numeric",
+  });
 
-      <section id="photos">
-        <h2>Share Your Memories With Us</h2>
-        <p class="sub">Send us the photos you take at the wedding</p>
-        <div class="card reveal">
-          <form id="photoForm">
-            <label class="drop" for="files"
-              >📷 Tap to choose photos<input
-                id="files"
-                type="file"
-                accept="image/*"
-                multiple
-                hidden
-            /></label>
-            <div class="thumbs" id="thumbs"></div>
-            <div>
-              <label for="pn">Your name (optional)</label
-              ><input id="pn" maxlength="60" autocomplete="name" />
-            </div>
-            <div>
-              <label for="pm">Short message (optional)</label
-              ><textarea id="pm" maxlength="300"></textarea>
-            </div>
-            <div class="bar" id="bar"><i></i></div>
-            <button class="btn" type="submit">Send Photos</button>
-            <div class="msg" id="pmsg" aria-live="polite"></div>
-          </form>
-        </div>
-        <h2 style="margin-top: 44px">Scan &amp; Share Your Photos</h2>
-        <p class="sub">
-          Scan to Share Your Photos. Point your phone camera at the code, then
-          choose your photos.
-        </p>
-        <div class="card reveal">
-          <div id="qr"></div>
-          <div class="row">
-            <button class="btn alt" id="qrDl">⬇ Download / print QR</button>
-          </div>
-        </div>
-      </section>
+  const gregorianGrid = document.createElement("div");
+  gregorianGrid.className = "g";
 
-      <section id="gallery">
-        <h2>Our Wedding Memories</h2>
-        <p class="sub">Photos shared by our guests</p>
-        <div class="gal" id="gal"></div>
-      </section>
-      <div class="tilet"></div>
+  ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach((day) => {
+    const cell = document.createElement("b");
+    cell.textContent = day;
+    gregorianGrid.appendChild(cell);
+  });
 
-      <section id="wishes">
-        <h2>Leave Us a Wedding Wish</h2>
-        <p class="sub">Our digital guestbook</p>
-        <div class="card reveal" style="margin-bottom: 26px">
-          <form id="wishForm">
-            <div>
-              <label for="wn">Your name</label
-              ><input id="wn" required maxlength="60" />
-            </div>
-            <div>
-              <label for="wt">Your wedding wish</label
-              ><textarea id="wt" required maxlength="500"></textarea>
-            </div>
-            <button class="btn" type="submit">Send Your Wish</button>
-            <div class="msg" id="wmsg" aria-live="polite"></div>
-          </form>
-        </div>
-        <div class="wishes" id="wishList"></div>
-      </section>
-    </main>
+  const gregorianFirst = new Date(Y, M - 1, 1).getDay();
+  const gregorianDays = new Date(Y, M, 0).getDate();
 
-    <footer class="am">
-      <svg
-        class="cross"
-        width="56"
-        height="56"
-        viewBox="-40 -40 80 80"
-        fill="currentColor"
-        stroke="#2b170a"
-        stroke-width="2.4"
-        stroke-linecap="round"
-      >
-        <path d="M0-26V26M-26 0H26" />
-        <rect x="-10" y="-10" width="20" height="20" transform="rotate(45)" />
-        <circle cy="-26" r="3.5" />
-        <circle cy="26" r="3.5" />
-        <circle cx="-26" r="3.5" />
-        <circle cx="26" r="3.5" />
-      </svg>
-      <p
-        style="
-          font-family: var(--serif);
-          font-size: 26px;
-          margin: 10px 0 0;
-          color: var(--cream);
-        "
-      >
-        Thank you for celebrating with us
-      </p>
-      <p
-        id="fNames"
-        style="
-          font-size: 20px;
-          font-weight: 700;
-          margin: 4px 0;
-          color: var(--cream);
-        "
-      ></p>
-    </footer>
+  for (let i = 0; i < gregorianFirst; i++) {
+    gregorianGrid.appendChild(document.createElement("span"));
+  }
 
-    <div id="lb">
-      <button id="lbP" style="left: 12px">‹</button><img alt="" /><button
-        id="lbN"
-        style="right: 12px"
-      >
-        ›</button
-      ><button id="lbX" style="top: 12px; right: 12px">×</button>
-    </div>
+  for (let day = 1; day <= gregorianDays; day++) {
+    const cell = document.createElement("span");
+    cell.textContent = day;
 
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
-      defer
-    ></script>
-    <script type="module" src="/app.js"></script>
-  </body>
-</html>
+    if (day === D) {
+      cell.classList.add("hit");
+      cell.title = "Wedding day";
+    }
+
+    gregorianGrid.appendChild(cell);
+  }
+
+  gregorianContainer.append(gregorianHeading, gregorianGrid);
+
+  // ---------- Ethiopian calendar ----------
+  const ethiopianMonths = [
+    "መስከረም",
+    "ጥቅምት",
+    "ኅዳር",
+    "ታኅሣሥ",
+    "ጥር",
+    "የካቲት",
+    "መጋቢት",
+    "ሚያዝያ",
+    "ግንቦት",
+    "ሰኔ",
+    "ሐምሌ",
+    "ነሐሴ",
+    "ጳጉሜ",
+  ];
+
+  const ethiopianWeekdays = ["እሑድ", "ሰኞ", "ማክሰኞ", "ረቡዕ", "ሐሙስ", "ዓርብ", "ቅዳሜ"];
+
+  function gregorianLeap(year) {
+    return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  }
+
+  // Ethiopian New Year falls on September 11 or 12.
+  function ethiopianNewYear(year) {
+    const gregorianYear = year + 7;
+    const septemberDay = gregorianLeap(gregorianYear + 1) ? 12 : 11;
+    return new Date(Date.UTC(gregorianYear, 8, septemberDay));
+  }
+
+  function toEthiopian(date) {
+    const gregorianDate = Date.UTC(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+
+    let year = date.getFullYear() - 7;
+
+    if (gregorianDate < ethiopianNewYear(year).getTime()) {
+      year--;
+    } else if (gregorianDate >= ethiopianNewYear(year + 1).getTime()) {
+      year++;
+    }
+
+    const start = ethiopianNewYear(year).getTime();
+    const dayOffset = Math.round((gregorianDate - start) / 86400000);
+
+    return {
+      year,
+      month: Math.floor(dayOffset / 30) + 1,
+      day: (dayOffset % 30) + 1,
+    };
+  }
+
+  function ethiopianLeap(year) {
+    return year % 4 === 3;
+  }
+
+  function ethiopianMonthStart(year, month) {
+    return new Date(
+      ethiopianNewYear(year).getTime() + (month - 1) * 30 * 86400000
+    );
+  }
+
+  const ethDate = toEthiopian(weddingDate);
+  const ethContainer = document.querySelector("#ethiopian-cal");
+  ethContainer.replaceChildren();
+
+  const ethHeading = document.createElement("h4");
+  ethHeading.textContent = `${ethiopianMonths[ethDate.month - 1]} ${
+    ethDate.year
+  } ዓ.ም.`;
+
+  const ethGrid = document.createElement("div");
+  ethGrid.className = "g";
+
+  ethiopianWeekdays.forEach((day) => {
+    const cell = document.createElement("b");
+    cell.textContent = day;
+    cell.title = day;
+    ethGrid.appendChild(cell);
+  });
+
+  const start = ethiopianMonthStart(ethDate.year, ethDate.month);
+  const firstWeekday = start.getUTCDay();
+  const daysInMonth =
+    ethDate.month <= 12 ? 30 : ethiopianLeap(ethDate.year) ? 6 : 5;
+
+  for (let i = 0; i < firstWeekday; i++) {
+    ethGrid.appendChild(document.createElement("span"));
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const cell = document.createElement("span");
+    cell.textContent = day;
+
+    if (day === ethDate.day) {
+      cell.classList.add("hit");
+      cell.title = "የሠርጉ ቀን";
+    }
+
+    ethGrid.appendChild(cell);
+  }
+
+  ethContainer.append(ethHeading, ethGrid);
+
+  const ethNote = document.createElement("p");
+  ethNote.className = "ethiopian-date-note";
+  ethNote.textContent =
+    `የሠርጉ ቀን፦ ${ethiopianMonths[ethDate.month - 1]} ` +
+    `${ethDate.day} ቀን ${ethDate.year} ዓ.ም.`;
+
+  ethContainer.appendChild(ethNote);
+})();
+
+// ---------- photo upload (compress on phone -> real API) ----------
+let picked = [];
+const thumbs = $("#thumbs");
+const draw = () =>
+  thumbs.replaceChildren(
+    ...picked.map((f, i) =>
+      el("div", {}, [
+        el("img", { src: f.url, alt: "" }),
+        el("button", {
+          type: "button",
+          textContent: "×",
+          ariaLabel: "Remove",
+          onclick: () => {
+            URL.revokeObjectURL(f.url);
+            picked.splice(i, 1);
+            draw();
+          },
+        }),
+      ])
+    )
+  );
+$("#files").onchange = (e) => {
+  [...e.target.files].forEach(
+    (f) =>
+      f.type.startsWith("image/") &&
+      picked.length < 20 &&
+      picked.push({ file: f, url: URL.createObjectURL(f) })
+  );
+  e.target.value = "";
+  draw();
+};
+const compress = (file) =>
+  new Promise((ok, no) => {
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, 1600 / Math.max(img.width, img.height)),
+        c = el("canvas", {
+          width: Math.round(img.width * s),
+          height: Math.round(img.height * s),
+        });
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      ok(c.toDataURL("image/jpeg", 0.82));
+    };
+    img.onerror = () => no(new Error("unreadable"));
+    img.src = URL.createObjectURL(file);
+  });
+const post = async (u, data) => {
+  const r = await fetch(apiUrl(u), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || "Something went wrong");
+  return j;
+};
+const say = (id, t, ok) => {
+  const m = $(id);
+  m.textContent = t;
+  m.className = "msg " + (ok ? "ok" : "err");
+};
+$("#photoForm").onsubmit = async (e) => {
+  e.preventDefault();
+  if (!picked.length) return say("#pmsg", "Please choose at least one photo.");
+  const bar = $("#bar");
+  bar.style.display = "block";
+  let done = 0,
+    fail = 0;
+  for (const f of [...picked]) {
+    try {
+      await post("/api/photos", {
+        image: await compress(f.file),
+        name: $("#pn").value,
+        message: $("#pm").value,
+      });
+      done++;
+    } catch {
+      fail++;
+    }
+    bar.firstChild.style.width = `${((done + fail) / picked.length) * 100}%`;
+  }
+  picked.forEach((f) => URL.revokeObjectURL(f.url));
+  picked = [];
+  draw();
+  bar.style.display = "none";
+  bar.firstChild.style.width = 0;
+  say(
+    "#pmsg",
+    fail
+      ? `${done} sent, ${fail} failed. Please try again.`
+      : `Thank you! ${done} photo${
+          done > 1 ? "s" : ""
+        } sent. They will appear after approval.`,
+    !fail
+  );
+};
+
+// ---------- QR (always uses the live site address) ----------
+let qrOk = false;
+const qrBox = $("#qr");
+addEventListener("load", () => {
+  if (window.QRCode) {
+    new QRCode(qrBox, {
+      text: photoUploadUrl,
+      width: 240,
+      height: 240,
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+    qrOk = true;
+  } else qrBox.textContent = "QR needs an internet connection to load.";
+});
+$("#qrDl").onclick = () => {
+  const src = qrBox.querySelector("canvas");
+  if (!qrOk || !src) return;
+  const c = el("canvas", { width: 1200, height: 1200 }),
+    x = c.getContext("2d");
+  x.fillStyle = "#fff";
+  x.fillRect(0, 0, 1200, 1200);
+  x.imageSmoothingEnabled = false;
+  x.drawImage(src, 100, 100, 1000, 1000);
+  el("a", {
+    href: c.toDataURL("image/png"),
+    download: "photo-upload-qr.png",
+  }).click();
+};
+
+// ---------- gallery + lightbox ----------
+let pics = [],
+  cur = 0;
+const lb = $("#lb"),
+  show = (i) => {
+    cur = (i + pics.length) % pics.length;
+    lb.querySelector("img").src = pics[cur].url;
+  };
+async function loadGallery() {
+  try {
+   pics = await (await fetch(apiUrl("/api/photos"))).json();
+pics = pics.map(p => ({
+  ...p,
+  url: p.url.startsWith("http") ? p.url : apiUrl(p.url)
+}));
+  } catch {
+    pics = [];
+  }
+  $("#galEmpty").style.display = pics.length ? "none" : "block";
+  $("#gal").replaceChildren(
+    ...pics.map((p, i) =>
+      el("img", {
+        src: p.url,
+        alt: p.guest_name ? `Photo by ${p.guest_name}` : "Wedding photo",
+        loading: "lazy",
+        decoding: "async",
+        onclick: () => {
+          show(i);
+          lb.classList.add("on");
+        },
+      })
+    )
+  );
+}
+$("#lbX").onclick = () => lb.classList.remove("on");
+$("#lbP").onclick = () => show(cur - 1);
+$("#lbN").onclick = () => show(cur + 1);
+addEventListener("keydown", (e) => {
+  if (!lb.classList.contains("on")) return;
+  if (e.key === "Escape") lb.classList.remove("on");
+  if (e.key === "ArrowLeft") show(cur - 1);
+  if (e.key === "ArrowRight") show(cur + 1);
+});
+
+// ---------- wishes ----------
+async function loadWishes() {
+  let w = [];
+  try {
+    w = await (await fetch(apiUrl("/api/wishes"))).json();
+  } catch {}
+  $("#wishList").replaceChildren(
+    ...w.map((x) =>
+      el("div", { className: "wish" }, [
+        el("p", { textContent: `“${x.message}”` }),
+        el("b", { textContent: `— ${x.name}  ✦` }),
+      ])
+    )
+  );
+}
+$("#wishForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const n = $("#wn").value.trim(),
+    t = $("#wt").value.trim();
+  if (!n || !t) return say("#wmsg", "Please enter your name and wish.");
+  try {
+    await post("/api/wishes", { name: n, message: t });
+    e.target.reset();
+    say("#wmsg", "Thank you! Your wish will appear once approved.", true);
+  } catch (er) {
+    say("#wmsg", er.message);
+  }
+};
+
+// ---------- RSVP ----------
+$("#rg").replaceChildren(
+  ...Array.from({ length: 10 }, (_, i) =>
+    el("option", { value: i + 1, textContent: i + 1 })
+  )
+);
+$("#rsvpForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const a = document.querySelector("input[name=att]:checked");
+  try {
+    await post("/api/rsvp", {
+      name: $("#rn").value,
+      guests: +$("#rg").value,
+      attending: a?.value === "yes",
+      message: $("#rm").value,
+    });
+    e.target.reset();
+    say(
+      "#rmsg",
+      a.value === "yes"
+        ? "Thank you! We can't wait to celebrate with you."
+        : "Thank you for letting us know. You will be missed.",
+      true
+    );
+  } catch (er) {
+    say("#rmsg", er.message);
+  }
+};
+observe();
+loadGallery();
+loadWishes();
+
+// ---------- gold particles (stops after the gate opens) ----------
+(() => {
+  const c = $("#particles"),
+    x = c.getContext("2d");
+  if (matchMedia("(prefers-reduced-motion:reduce)").matches) return c.remove();
+  const f = () => {
+    c.width = innerWidth;
+    c.height = innerHeight;
+  };
+  f();
+  addEventListener("resize", f);
+  const P = Array.from({ length: 36 }, () => ({
+    x: Math.random() * c.width,
+    y: Math.random() * c.height,
+    r: Math.random() * 2 + 0.6,
+    v: Math.random() * 0.4 + 0.15,
+    a: Math.random(),
+  }));
+  (function loop() {
+    if (c.style.display === "none") return;
+    x.clearRect(0, 0, c.width, c.height);
+    P.forEach((p) => {
+      p.y -= p.v;
+      p.a += 0.02;
+      if (p.y < -5) {
+        p.y = c.height + 5;
+        p.x = Math.random() * c.width;
+      }
+      x.fillStyle = `rgba(255,236,170,${0.35 + Math.sin(p.a) * 0.3})`;
+      x.beginPath();
+      x.arc(p.x, p.y, p.r, 0, 7);
+      x.fill();
+    });
+    requestAnimationFrame(loop);
+  })();
+})();
