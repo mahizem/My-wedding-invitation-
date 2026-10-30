@@ -87,6 +87,25 @@ const legacyPhotos = () => db.prepare("SELECT id,file,guest_name,message,status,
 function legacyId(id) { return Number(id) >= LEGACY_PHOTO_OFFSET ? Number(id) - LEGACY_PHOTO_OFFSET : null; }
 
 http.createServer(async (req, res) => {
+  const ALLOWED_ORIGIN = 'https://my-wedding-invitation-site.onrender.com';
+  const origin = req.headers.origin;
+
+  if (origin === ALLOWED_ORIGIN) {
+    res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Key');
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
+
+  if (req.method === 'OPTIONS') {
+    if (origin !== ALLOWED_ORIGIN) {
+      res.writeHead(403);
+      return res.end();
+    }
+    res.writeHead(204);
+    return res.end();
+  }
   const url = new URL(req.url, 'http://localhost'), p = url.pathname, ip = req.socket.remoteAddress || 'unknown';
   try {
     // Public approved photos: current Telegram/Supabase records plus older local photos.
