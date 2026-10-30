@@ -5,7 +5,7 @@
 <h1>Wedding Admin</h1><div id="login"><input id="pw" type="password" placeholder="Admin password"><button id="go">Log in</button> <span id="err"></span></div><div id="app" hidden>
 <h2>RSVP <small id="tot"></small></h2><button id="csv">Download RSVPs (CSV)</button><div id="rs"></div><h2>Wishes</h2><div id="ws"></div><h2>Photos</h2><div id="ps" class="ph"></div></div>
 <script>
-const API_BASE = "https://my-wedding-invitation-pw7j.onrender.com"; const apiUrl = path => ${API_BASE}${path};
+const API_BASE = "https://my-wedding-invitation-pw7j.onrender.com"; const apiUrl = path => `${API_BASE}${path}`;
 const $=s=>document.querySelector(s); let K=sessionStorage.k||""; const H=()=>({"x-admin-key":K});
 const mk=(t,p={},k=[])=>{const e=document.createElement(t);Object.assign(e,p);k.forEach(x=>e.append(x));return e};
 async function act(t,id,a){if(a==="delete"&&!confirm("Delete permanently?"))return;await fetch(apiUrl(/api/admin/${t}/${id}/${a}),{method:"POST",headers:H()});load()}
