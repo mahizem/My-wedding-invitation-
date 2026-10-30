@@ -1,7 +1,7 @@
 import { weddingConfig as C, photoUploadUrl } from "/weddingConfig.js";
 import { weddingProgram } from "/weddingProgram.js";
 const API_BASE = "https://my-wedding-invitation-pw7j.onrender.com"; 
-const apiUrl = (path) => ${API_BASE}${path};
+const apiUrl = (path) => `${API_BASE}${path}`;
 const $ = (s) => document.querySelector(s),
   el = (t, p = {}, kids = []) => {
     const e = document.createElement(t);
