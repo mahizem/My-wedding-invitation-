@@ -137,9 +137,8 @@ async function load() {
       "Unable to load admin data. Please try again.";
   }
 }
- alert("Admin Javascript is running")
+ 
 $("#go").onclick = () => {
-  $("#err").textContent = "Button works! Connecting to server...";
   K = $("#pw").value;
   load();
 };
