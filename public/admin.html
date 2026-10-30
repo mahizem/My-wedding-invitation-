@@ -17,6 +17,12 @@ async function load(){const r=await fetch(apiUrl("/api/admin/all"),{headers:H()}
 $("#tot").textContent=`— ${d.totals.yes||0} yes, ${d.totals.no||0} no, ${d.totals.coming||0} guests coming`;
 $("#rs").replaceChildren(...d.rsvps.map(x=>mk("div",{className:"c"},[mk("b",{textContent:x.name}),` · ${x.attending?"YES":"no"} · ${x.guests} guest(s) · ${x.message||""}`,btns("rsvps",x)])));
 $("#ws").replaceChildren(...d.wishes.map(x=>mk("div",{className:"c"},[mk("span",{className:"s",textContent:x.status.toUpperCase()+" "}),mk("b",{textContent:x.name}),mk("p",{textContent:x.message}),btns("wishes",x)])));
-$("#ps").replaceChildren(...await Promise.all(d.photos.map(async x=>{const b=await (await fetch(apiUrl("/uploads/"+x.file+"?admin=1"),{headers:H()}).blob();return mk("div",{className:"c"},[mk("img",{src:URL.createObjectURL(b)}),mk("span",{className:"s",textContent:x.status.toUpperCase()+" · "+(x.guest_name||"anonymous")}),mk("div",{textContent:x.message||""}),btns("photos",x)])})))}
-$("#go").onclick=()=>{K=$("#pw").value;load()};$("#csv").onclick=async()=>{const b=await (await fetch(apiUrl("/api/admin/rsvps.csv"),{headers:H()}).blob();mk("a",{href:URL.createObjectURL(b),download:"rsvps.csv"}).click()};if(K)load();
+$("#ps").replaceChildren(...await Promise.all(d.photos.map(async x=>{const b = await (await fetch(
+  apiUrl("/uploads/" + x.file + "?admin=1"),
+  { headers: H() }
+)).blob();return mk("div",{className:"c"},[mk("img",{src:URL.createObjectURL(b)}),mk("span",{className:"s",textContent:x.status.toUpperCase()+" · "+(x.guest_name||"anonymous")}),mk("div",{textContent:x.message||""}),btns("photos",x)])})))}
+$("#go").onclick=()=>{K=$("#pw").value;load()};$("#csv").onclick=async()=>{const b = await (await fetch(
+  apiUrl("/api/admin/rsvps.csv"),
+  { headers: H() }
+)).blob();mk("a",{href:URL.createObjectURL(b),download:"rsvps.csv"}).click()};if(K)load();
 </script></body></html>
