@@ -139,6 +139,7 @@ async function load() {
 }
 
 $("#go").onclick = () => {
+  $("#err").textContent = "Button works! Connecting to server...";
   K = $("#pw").value;
   load();
 };
