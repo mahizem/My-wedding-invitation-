@@ -744,6 +744,38 @@
         text-align: center;
         color: var(--choc);
       }
+
+      .author-credit {
+  text-align: center;
+  padding: 35px 15px;
+  margin-top: 25px;
+}
+
+.author-credit p {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: #9b805b;
+  margin: 12px 0 5px;
+  font-style: italic;
+}
+
+.author-credit h3 {
+  font-family: Georgia, serif;
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  color: #8b6b42;
+  margin: 0;
+}
+
+.author-line {
+  display: inline-block;
+  width: 55px;
+  height: 1px;
+  background: #c5a477;
+  vertical-align: middle;
+}
     </style>
   </head>
   <body class="lock">
@@ -1022,5 +1054,11 @@
       defer
     ></script>
     <script type="module" src="/app.js"></script>
+    <div class="author-credit">
+  <span class="author-line"></span>
+  <p>Crafted with love by</p>
+  <h3>Mahlet Adugna ❤️‍🩹</h3>
+  <span class="author-line"></span>
+</div>
   </body>
 </html>
