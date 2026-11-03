@@ -4,7 +4,7 @@
 export const weddingConfig = {
   // Names (shown exactly as written)
   groom: "የ ካፒቴን አበበ አለማየሁ",
-  bride: "የ ማሕሌት አዱኛ",
+  bride: "የ ኢንጂነር ማሕሌት አዱኛ",
   groomShort: "Abe", // used in English headings / calendar title. Edit freely.
   brideShort: "Mahi",
 
